@@ -16,12 +16,25 @@ public sealed class MetricsLogger :  IDisposable
     
     public string FilePath { get; }
 
-    public MetricsLogger(string algo, string dir = "runs")
+    public MetricsLogger(string algo, string? dir = null)
+        : this(MakePath(algo, dir ?? RunStore.ResolveRunsRoot()))
     {
-        Directory.CreateDirectory(dir);
-        FilePath = Path.Combine(dir, $"{algo}_{DateTime.Now:yyyMMdd_HHmmss}.csv");
+    }
+
+    private MetricsLogger(string filePath)
+    {
+        FilePath = filePath;
         _writer = new StreamWriter(FilePath);
         _writer.WriteLine("total_env_steps,best_reward,mean_reward");
+    }
+
+    /// <summary>Лог ровно по этому пути (используется RunRecorder для metrics.csv рана).</summary>
+    public static MetricsLogger AtPath(string filePath) => new(filePath);
+
+    private static string MakePath(string algo, string dir)
+    {
+        Directory.CreateDirectory(dir);
+        return Path.Combine(dir, $"{algo}_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
     }
 
     public void Log(long totalEnvSteps, float bestReward, float meanReward)

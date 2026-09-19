@@ -84,6 +84,9 @@ public static class Watch
 
             // Звенья. Физический угол — CCW при Y-вверх; у raylib положительное
             // вращение по часовой и Y вниз, поэтому знак угла меняем.
+            // По окончании — общее правило подсветки: дошёл — зелёный, таймаут — красный.
+            Color bodyColor = done ? (env.ReachedTarget ? Color.Green : Color.Red) : Color.Blue;
+            Color midColor = done ? (env.ReachedTarget ? Color.Green : Color.Red) : Color.DarkBlue;
             for (int i = 0; i < env.Links.Count; i++)
             {
                 var link = env.Links[i];
@@ -95,7 +98,7 @@ public static class Watch
                 var origin = new Vector2(w / 2f, h / 2f);
                 float rotationDeg = -link.Rotation * (180f / MathF.PI);
 
-                Raylib.DrawRectanglePro(rect, origin, rotationDeg, i == 1 ? Color.DarkBlue : Color.Blue);
+                Raylib.DrawRectanglePro(rect, origin, rotationDeg, i == 1 ? midColor : bodyColor);
             }
 
             // Суставы
