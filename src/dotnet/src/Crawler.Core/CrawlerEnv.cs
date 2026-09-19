@@ -35,11 +35,21 @@ public sealed class CrawlerEnv : ICrawlerEnv
 
     private int _steps;
     private float _prevX;
+    private bool _reached;
 
     // --- Доступ для рендера / отладки (только чтение) ---
     public IReadOnlyList<Body> Links => _links;
     public IReadOnlyList<RevoluteJoint> Joints => _joints;
     public int Steps => _steps;
+
+    public int LinkCount => _links.Length;
+    public bool ReachedTarget => _reached;
+
+    public LinkPose GetLinkPose(int index)
+    {
+        var body = _links[index];
+        return new LinkPose(body.Position.X, body.Position.Y, body.Rotation);
+    }
 
     public float[] Reset(int seed)
     {
@@ -86,6 +96,7 @@ public sealed class CrawlerEnv : ICrawlerEnv
             link.ApplyAngularImpulse((float)(rng.NextDouble() - 0.5) * 0.02f);
 
         _steps = 0;
+        _reached = false;
         _prevX = BodyX();
         return BuildObservation();
     }
@@ -118,7 +129,11 @@ public sealed class CrawlerEnv : ICrawlerEnv
         float reward = progress - 0.0005f * energyPenalty;
 
         bool reached = x >= TargetX;
-        if (reached) reward += 10f;
+        if (reached)
+        {
+            reward += 10f;
+            _reached = true;
+        }
 
         bool done = reached || _steps >= MaxSteps;
         return (BuildObservation(), reward, done);
